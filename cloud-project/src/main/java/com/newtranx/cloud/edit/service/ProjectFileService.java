@@ -1,0 +1,31 @@
+package com.newtranx.cloud.edit.service;
+
+import com.newtranx.cloud.edit.dto.ProjectFileVo;
+import com.newtranx.cloud.edit.entities.ProjectFile;
+import com.newtranx.cloud.edit.entities.Task;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+
+/**
+ * @Author: niujiaxin
+ * @Date: 2021-02-02 08:52
+ */
+@FeignClient
+public interface ProjectFileService {
+
+    Object uploadFile(MultipartFile file);
+
+    List<ProjectFileVo> getFilesByProjectId (Long projectId);
+
+    List<ProjectFile> getUnAssignFilesByProjectId (Long projectId);
+
+    int addFile(ProjectFile projectFile);
+
+    int updateFile(ProjectFile projectFile);
+
+    int delFile(Long fileId);
+
+    List<Task> getTaskList(Long fileId);
+}
