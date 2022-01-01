@@ -1,0 +1,4 @@
+book_id=01181514_001
+book_name=日照档案志1949-2009
+author=《日照档案志》编纂委员会
+file_number=520
