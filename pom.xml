@@ -12,6 +12,7 @@
   <modules>
     <module>cloud-api-commons</module>
     <module>cloud-project</module>
+    <module>cloud-generator</module>
   </modules>
 
 

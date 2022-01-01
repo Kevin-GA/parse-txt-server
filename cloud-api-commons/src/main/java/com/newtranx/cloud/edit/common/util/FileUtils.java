@@ -1,4 +1,4 @@
-package com.newtranx.cloud.edit.untils;
+package com.newtranx.cloud.edit.common.util;
 
 import java.io.*;
 import java.nio.CharBuffer;
