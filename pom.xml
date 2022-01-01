@@ -32,12 +32,13 @@
     <log4j.version>1.2.17</log4j.version>
     <lombok.version>1.16.18</lombok.version>
     <mysql.version>5.1.47</mysql.version>
-    <druid.version>1.1.16</druid.version>
+<!--    <druid.version>1.1.16</druid.version>-->
+    <druid.version>1.2.4</druid.version>
     <fastjson.version>1.2.62</fastjson.version>
     <guava.version>27.0-jre</guava.version>
     <mybatis-plus.version>3.3.2</mybatis-plus.version>
     <ip2region.version>1.7</ip2region.version>
-    <spring-boot-admin.version>2.2.0</spring-boot-admin.version>
+    <spring-boot-admin.version>2.2.6</spring-boot-admin.version>
     <swagger.version>2.9.2</swagger.version>
   </properties>
 

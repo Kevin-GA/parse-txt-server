@@ -1,13 +1,14 @@
 package com.newtranx.cloud.edit.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.newtranx.cloud.edit.common.entities.Result;
+import com.newtranx.cloud.edit.common.util.EntityChangeUtil;
 import com.newtranx.cloud.edit.common.util.FileUtils;
 import com.newtranx.cloud.edit.common.util.HttpUtil;
-import com.newtranx.cloud.edit.entities.ContentDto;
-import com.newtranx.cloud.edit.entities.ContentIndexEntity;
-import com.newtranx.cloud.edit.entities.DocEsBean;
+import com.newtranx.cloud.edit.entities.*;
 import com.newtranx.cloud.edit.service.ContentEsService;
+import com.newtranx.cloud.edit.service.ContentIndexService;
 import com.newtranx.cloud.edit.service.DocEsService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
@@ -45,6 +46,8 @@ public class ParseTextController {
     private DocEsService docEsService;
     @Resource
     private ContentEsService contentEsService;
+    @Resource
+    private ContentIndexService contentIndexService;
 
     private int matchTime = 0;
     //            Map<String, Object> preMap = new HashMap<>();
@@ -66,7 +69,7 @@ public class ParseTextController {
 
     }
     @GetMapping("/getNeirong")
-    public Object getMulu(String pian,String zhang,String jie){
+    public Object getMulu(String titleParam,Integer page){
         String getNeirong = ClassUtils.getDefaultClassLoader().getResource("").getPath();
 //        docEsService.findByNameOrDesc("pianzhangjie","");
         return Result.getSuccessResult("范志民男，汉族，1921年2月出生，五莲县院西乡范家车村人。系中国美术协会会员、获首届邹韬奋出版奖的全国十大美术编辑之一。曾编辑出版《中国画家丛书》20余种，中国美术史论10余种，并任《中国美术全集》中《古代版画》的副主编，编纂大型专业工具书《中国美术家名人辞典》、《古代画汇览》，其版画、国画、水粉画作品多次选入各级展览。");
@@ -85,6 +88,16 @@ public class ParseTextController {
             readContentFileByLines(baseUrl + f.getName(),contentIndexList);
 
         }
+
+        List<ContentIndex> contentLists = null;
+        try {
+            contentLists = EntityChangeUtil.toDTO(ContentIndex.class, contentIndexList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("实体转换异常");
+        }
+        //存储目录结构
+        contentIndexService.saveBatch(contentLists);
 
         List<ContentDto> contentDtos = new ArrayList<>();
         List<ContentIndexEntity> JieList = contentIndexList
@@ -137,6 +150,15 @@ public class ParseTextController {
             }
             contentDto.setChild(zhangChild);
         }
+
+        //mulu存储到es
+        ContentEsBean contentEsBean = new ContentEsBean();
+        contentEsBean.setId(1L);
+        contentEsBean.setFileId("1");
+        contentEsBean.setTotalTitle("");
+        contentEsBean.setMuluJson(JSON.toJSONString(contentDtos));
+        contentEsService.save(contentEsBean);
+
         return Result.getSuccessResult(contentDtos);
 
     }

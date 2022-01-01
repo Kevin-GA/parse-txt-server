@@ -80,7 +80,7 @@ public class CodeGeneration {
         strategy.setNaming(NamingStrategy.underline_to_camel);
 
         // 需要生成的表
-        strategy.setInclude(new String[]{"doc_job"});
+        strategy.setInclude(new String[]{"content_index"});
         strategy.setSuperMapperClass(null);
         strategy.setEntityLombokModel(true);
 

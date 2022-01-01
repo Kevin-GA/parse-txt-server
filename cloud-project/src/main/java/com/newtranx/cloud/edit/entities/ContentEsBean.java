@@ -22,7 +22,7 @@ public class ContentEsBean {
     @Id
     private long id;
     @Field(analyzer = "ik_smart", type = FieldType.Text)
-    private String bianzhangjie;
+    private String totalTitle;
     private String fileId;
     private String muluJson;
 }
