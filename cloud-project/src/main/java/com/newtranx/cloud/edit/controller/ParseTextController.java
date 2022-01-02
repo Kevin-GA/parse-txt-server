@@ -78,8 +78,8 @@ public class ParseTextController {
 
     @GetMapping("/init")
     public Result<Object> init(String filePath){
-//        String locationPath = ClassUtils.getDefaultClassLoader().getResource("").getPath();
-        List<File> txtList = FileUtils.getFilesFromFolder(baseUrl);
+        String locationPath = ClassUtils.getDefaultClassLoader().getResource("").getPath();
+        List<File> txtList = FileUtils.getFilesFromFolder(locationPath);
         List<File> muluList = txtList.stream().filter(a -> a.getName().startsWith("C")).collect(Collectors.toList());
         List<File> contentList = txtList.stream().filter(a -> a.getName().startsWith("T")).collect(Collectors.toList());
         List<ContentIndexEntity> contentIndexList = new ArrayList<>();
@@ -97,7 +97,7 @@ public class ParseTextController {
             log.error("实体转换异常");
         }
         //存储目录结构
-        contentIndexService.saveBatch(contentLists);
+//        contentIndexService.saveBatch(contentLists);
 
         List<ContentDto> contentDtos = new ArrayList<>();
         List<ContentIndexEntity> JieList = contentIndexList
