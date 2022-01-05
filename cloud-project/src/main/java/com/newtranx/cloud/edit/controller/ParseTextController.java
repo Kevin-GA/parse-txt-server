@@ -1,11 +1,12 @@
 package com.newtranx.cloud.edit.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.alibaba.fastjson.JSONArray;
 import com.newtranx.cloud.edit.common.entities.Result;
 import com.newtranx.cloud.edit.common.util.EntityChangeUtil;
 import com.newtranx.cloud.edit.common.util.FileUtils;
 import com.newtranx.cloud.edit.common.util.HttpUtil;
+import com.newtranx.cloud.edit.dto.ContentDto;
 import com.newtranx.cloud.edit.entities.*;
 import com.newtranx.cloud.edit.service.ContentEsService;
 import com.newtranx.cloud.edit.service.ContentIndexService;
@@ -18,16 +19,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -41,6 +35,7 @@ import java.util.stream.Collectors;
 public class ParseTextController {
 
     String baseUrl = "C:\\develop\\IdeaProjects\\bossLee\\01181514_001\\txt\\";
+//    String baseUrl = "/data/myfile";
 
     @Resource
     private DocEsService docEsService;
@@ -49,11 +44,6 @@ public class ParseTextController {
     @Resource
     private ContentIndexService contentIndexService;
 
-    private int matchTime = 0;
-    //            Map<String, Object> preMap = new HashMap<>();
-    private Map<String, String> bianMap = new HashMap<>();
-    private Map<String, String> zhangMap = new HashMap<>();
-    private Map<String, String> jieMap = new HashMap<>();
 
     @GetMapping("/getContent")
     public Object getContent(){
@@ -65,27 +55,34 @@ public class ParseTextController {
     public Object getMulu(){
         String locationPath = ClassUtils.getDefaultClassLoader().getResource("").getPath();
 //        docEsService.findByName("mulu");
-        return init("");
+        List<ContentEsBean> byFileId = contentEsService.findByFileId("1");
+        List<ContentDto> contentDtos = JSONArray.parseArray(byFileId.get(0).getMuluJson(), ContentDto.class);
+        return Result.getSuccessResult(contentDtos);
 
     }
     @GetMapping("/getNeirong")
     public Object getMulu(String titleParam,Integer page){
         String getNeirong = ClassUtils.getDefaultClassLoader().getResource("").getPath();
-//        docEsService.findByNameOrDesc("pianzhangjie","");
+        List<DocEsBean> byBianzhangjie = docEsService.findByBianzhangjie(titleParam);
         return Result.getSuccessResult("范志民男，汉族，1921年2月出生，五莲县院西乡范家车村人。系中国美术协会会员、获首届邹韬奋出版奖的全国十大美术编辑之一。曾编辑出版《中国画家丛书》20余种，中国美术史论10余种，并任《中国美术全集》中《古代版画》的副主编，编纂大型专业工具书《中国美术家名人辞典》、《古代画汇览》，其版画、国画、水粉画作品多次选入各级展览。");
 
+    }
+    @GetMapping("/linkAI")
+    public Object linkAI(String aiParam){
+        List<DocEsBean> byNameOrDesc = docEsService.findByDesc(aiParam);
+        return Result.getSuccessResult(byNameOrDesc);
     }
 
     @GetMapping("/init")
     public Result<Object> init(String filePath){
-        String locationPath = ClassUtils.getDefaultClassLoader().getResource("").getPath();
-        List<File> txtList = FileUtils.getFilesFromFolder(locationPath);
+//        String locationPath = ClassUtils.getDefaultClassLoader().getResource("").getPath();
+        List<File> txtList = FileUtils.getFilesFromFolder(baseUrl);
         List<File> muluList = txtList.stream().filter(a -> a.getName().startsWith("C")).collect(Collectors.toList());
         List<File> contentList = txtList.stream().filter(a -> a.getName().startsWith("T")).collect(Collectors.toList());
         List<ContentIndexEntity> contentIndexList = new ArrayList<>();
 //        todo 1、读取目录文件生成目录结构对象
         for (File f : muluList) {
-            readContentFileByLines(baseUrl + f.getName(),contentIndexList);
+//            readContentFileByLines(baseUrl + f.getName(),contentIndexList);
 
         }
 
@@ -139,6 +136,7 @@ public class ParseTextController {
                     if(contentIndexEntity.getBian().equals(contentDto.getTitle()) && contentIndexEntity.getZhang().equals(s)){
                         ContentDto subSub = new ContentDto();
                         subSub.setTitle(contentIndexEntity.getJie());
+                        subSub.setContentName(contentIndexEntity.getContentName());
                         subSub.setPage(contentIndexEntity.getPageNum());
                         jieChild.add(subSub);
                     }
@@ -178,193 +176,5 @@ public class ParseTextController {
 
     }
     
-    public void readContentFileByLines(String fileName, List<ContentIndexEntity> contentIndexEntities) {
-        File file = new File(fileName);
-        BufferedReader reader = null;
-        try {
-            System.out.println("以行为单位读取目录文件内容，一次读一整行：");
-            reader = new BufferedReader(new FileReader(file));
-            String tempString = null;
-            int line = 1;
 
-            // 一次读入一行，直到读入null为文件结束
-            while ((tempString = reader.readLine()) != null) {
-                // 显示行号
-//                subContentIndexEntity.set
-//                ^(13[0-9]|14[5|7]|15[0|1|2|3|4|5|6|7|8|9]|18[0|1|2|3|5|6|7|8|9])\d{8}$
-//                第的unicode
-//                ^(\u7b2c)(\u4e00|\u4e8c|\u4e09|\u56db|\u4e94|\u516d|\u4e03|\u516b|\u4e5d|\u5341)(\u5341)?(\u4e00|\u4e8c|\u4e09|\u56db|\u4e94|\u516d|\u4e03|\u516b|\u4e5d)?(\u7f16)$
-//
-//^(\u7b2c)(\u4e00|\u4e8c|\u4e09|\u56db|\u4e94|\u516d|\u4e03|\u516b|\u4e5d|\u5341)(\u5341)?(\u4e00|\u4e8c|\u4e09|\u56db|\u4e94|\u516d|\u4e03|\u516b|\u4e5d)
-//                String patternStr = "^(\\u7b2c)(\\u4e00|\\u4e8c|\\u4e09|\\u56db|\\u4e94|\\u516d|\\u4e03|\\u516b|\\u4e5d|\\u5341)(\\u5341)?(\\u4e00|\\u4e8c|\\u4e09|\\u56db|\\u4e94|\\u516d|\\u4e03|\\u516b|\\u4e5d)";
-
-//           匹配章节
-//                String patternStr = "^(\\u7b2c).+(\\u7f16|\\u7ae0|\\u8282)";
-
-//                tempString ="第一节 革命历史档案.................87";
-                //页首第一个char为空
-                if(line==1){
-                    char[] chars = tempString.toCharArray();
-                    char[] newChars =new char[chars.length-1];
-                    for (int i = 0; i < chars.length-1; i++) {
-                        newChars[i]=chars[i+1];
-                    }
-                    tempString=String.valueOf(newChars);
-                }
-
-                String jiePatternStr = "^(\\u7b2c).+(\\u8282)(\\s)";
-                String zhangPatternStr = "^(\\u7b2c).+(\\u7ae0)(\\s)";
-                String bianPatternStr = "^(\\u7b2c).+(\\u7f16)(\\s)";
-//                匹配文末数字
-                String intPatternStr = "\\d*$";
-                Pattern bianPattern = Pattern.compile(bianPatternStr);
-                Pattern zhangPattern = Pattern.compile(zhangPatternStr);
-                Pattern jiePattern = Pattern.compile(jiePatternStr);
-                Pattern patternInt = Pattern.compile(intPatternStr);
-
-                Matcher bianMatcher = bianPattern.matcher(tempString);
-                Matcher zhangMatcher = zhangPattern.matcher(tempString);
-                Matcher jieMatcher = jiePattern.matcher(tempString);
-
-                Pattern prePattern = Pattern.compile("[\\u4e00-\\u9fa5]+");
-                Matcher preMatcher = prePattern.matcher(tempString);
-
-                Matcher matcherInt = patternInt.matcher(tempString);
-
-                ContentIndexEntity contentIndexEntity = new ContentIndexEntity();
-                if (bianMatcher.find()) {
-                    zhangMap.clear();
-                    jieMap.clear();
-                    bianMap.put("bian",bianMatcher.group().trim());
-
-//如果匹配
-//                    System.out.println(bianMatcher.group());
-                    if (matcherInt.find()) {
-                        System.out.println(matcherInt.group());
-                        bianMap.put("bianPageNum",matcherInt.group());
-//                        System.out.println(tempString.replace(bianMatcher.group(), "").replace(matcherInt.group(), "").trim().replace(".", ""));
-                        bianMap.put("contentName",tempString.replace(bianMatcher.group(), "").replace(matcherInt.group(), "").trim().replace(".", ""));
-                    }
-
-                }else if (zhangMatcher.find()) {
-                    jieMap.clear();
-                    zhangMap.put("zhang",zhangMatcher.group().trim());
-//如果匹配
-//                    System.out.println("line " + line + ": " + tempString);
-//                    System.out.println(bianMatcher.group()); 匹配到的字符串
-                    if (matcherInt.find()) {
-                        zhangMap.put("zhangPageNum",matcherInt.group());
-//                        System.out.println(tempString.replace(zhangMatcher.group(), "").replace(matcherInt.group(), "").trim().replace(".", ""));
-                        zhangMap.put("contentName",tempString.replace(zhangMatcher.group(), "").replace(matcherInt.group(), "").trim().replace(".", ""));
-                    }
-
-                }else if (jieMatcher.find()) {
-                    jieMap.put("jie",jieMatcher.group().trim());
-//如果匹配
-//                    System.out.println("line " + line + ": " + tempString);
-//                    System.out.println(bianMatcher.group()); 匹配到的字符串
-                    if (matcherInt.find()) {
-                        jieMap.put("jiePageNum",matcherInt.group());
-//                        System.out.println(tempString.replace(jieMatcher.group(), "").replace(matcherInt.group(), "").trim().replace(".", ""));
-                        jieMap.put("contentName",tempString.replace(jieMatcher.group(), "").replace(matcherInt.group(), "").trim().replace(".", ""));
-                    }
-
-                }else {//不是编章节就肯定是序、概述等，记录下来
-                    if(preMatcher.find()){
-                        bianMap.clear();
-                        zhangMap.clear();
-                        jieMap.clear();
-                        contentIndexEntity.setPre(preMatcher.group());
-                        if (matcherInt.find()&& StringUtils.isNotBlank(matcherInt.group())) {
-                            System.out.println(matcherInt.group());
-                            contentIndexEntity.setPageNum(Integer.parseInt(matcherInt.group()));
-                        }
-                    }
-
-                }
-                if (bianMap.get("bian")!=null){
-                    contentIndexEntity.setBian(bianMap.get("bian"));
-                    contentIndexEntity.setContentName(bianMap.get("contentName"));
-                    contentIndexEntity.setPageNum(Integer.parseInt(bianMap.get("bianPageNum")));
-                }
-                if (zhangMap.get("zhang")!=null){
-                    contentIndexEntity.setZhang(zhangMap.get("zhang"));
-                    contentIndexEntity.setContentName(zhangMap.get("contentName"));
-                    contentIndexEntity.setPageNum(Integer.parseInt(zhangMap.get("zhangPageNum")));
-                }
-                if (jieMap.get("jie")!=null){
-                    contentIndexEntity.setJie(jieMap.get("jie"));
-                    contentIndexEntity.setContentName(jieMap.get("contentName"));
-                    contentIndexEntity.setPageNum(Integer.parseInt(jieMap.get("jiePageNum")));
-
-                }
-                contentIndexEntities.add(contentIndexEntity);
-                line++;
-            }
-            reader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e1) {
-                }
-            }
-        }
-
-    }
-
-    /**
-     * 获取两个章节之间的文本
-     * @param fileName
-     * @return
-     */
-
-    public void readSubContentFileByLines(String fileName ) {
-        File file = new File(fileName);
-        BufferedReader reader = null;
-        try {
-            System.out.println("readSubContentFileByLines以行为单位读取文件内容，一次读一整行：");
-            reader = new BufferedReader(new FileReader(file));
-            String tempString = null;
-            int line = 1;
-
-            // 一次读入一行，直到读入null为文件结束
-            while ((tempString = reader.readLine()) != null) {
-
-                String patternStr = "^(\\u7b2c).+(\\u7f16|\\u7ae0|\\u8282)$";
-                Pattern pattern = Pattern.compile(patternStr);
-                Matcher matcher = pattern.matcher(tempString);
-                if (matcher.find()){
-                    ++matchTime;
-                    System.out.println(matchTime);
-                    System.out.println(tempString);
-//                    tempString ="";
-//                    break;
-                }
-
-                if(matchTime ==1){
-                    System.out.println("line " + line + ": " + tempString);
-
-                }
-                // 显示行号
-                line++;
-                if(matchTime == 2)
-                    return;
-
-            }
-            reader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e1) {
-                }
-            }
-        }
-
-    }
 }

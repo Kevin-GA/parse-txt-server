@@ -7,12 +7,9 @@ spring:
 #    nacos:
 #      discovery:
 #        server-addr: 123.57.180.198:8848
-  data:
-    elasticsearch:
-      client:
-        reactive: 101.200.183.167:9200
-      repositories:
-        enabled: true
+  elasticsearch:
+    rest:
+      uris: 101.200.183.167:9200
 
   # spring2.3.x 版本之前
 #      cluster-name: elasticsearch

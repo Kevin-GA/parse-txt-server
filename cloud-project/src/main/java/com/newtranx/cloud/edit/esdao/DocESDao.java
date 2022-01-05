@@ -8,7 +8,10 @@ import java.util.List;
 
 public interface DocESDao extends ElasticsearchRepository<DocEsBean, Long> {
 
-    List<DocEsBean> findByName(String name);
+    List<DocEsBean> findByBianzhangjie(String bianzhangjie);
 
     List<DocEsBean> findByNameOrDesc(String keyWord,String text);
+
+    List<DocEsBean> findByDesc(String desc);
+
 }

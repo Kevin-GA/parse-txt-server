@@ -1,4 +1,4 @@
-package com.newtranx.cloud.edit.entities;
+package com.newtranx.cloud.edit.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,6 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ContentDto {
     private String title;
+    private String contentName;
     private Integer page;
     private List<ContentDto> child;
 }

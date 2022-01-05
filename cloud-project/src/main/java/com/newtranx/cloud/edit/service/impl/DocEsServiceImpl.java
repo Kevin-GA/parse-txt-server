@@ -30,12 +30,17 @@ public class DocEsServiceImpl implements DocEsService {
     }
 
     @Override
-    public List<DocEsBean> findByName(String text) {
-        return docESDao.findByName(text);
+    public List<DocEsBean> findByBianzhangjie(String bianzhangjie) {
+        return docESDao.findByBianzhangjie(bianzhangjie);
     }
 
     @Override
     public List<DocEsBean> findByNameOrDesc(String keyWord, String desc) {
         return docESDao.findByNameOrDesc(keyWord,desc);
+    }
+
+    @Override
+    public List<DocEsBean> findByDesc(String desc) {
+        return docESDao.findByDesc(desc);
     }
 }

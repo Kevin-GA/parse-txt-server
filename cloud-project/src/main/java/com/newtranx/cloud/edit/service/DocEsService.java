@@ -12,8 +12,10 @@ public interface DocEsService {
 
     void save(DocEsBean bean);
 
-    List<DocEsBean> findByName(String name);
+    List<DocEsBean> findByBianzhangjie(String bianzhangjie);
 
     List<DocEsBean> findByNameOrDesc(String name,String desc);
+
+    List<DocEsBean> findByDesc(String desc);
 
 }
