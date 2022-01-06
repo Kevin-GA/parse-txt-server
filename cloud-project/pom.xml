@@ -17,28 +17,12 @@
     </properties>
 
     <dependencies>
-
-<!--   begin     es 7.X版本 reactiveElasticsearchTemplate-->
-        <dependency>
-            <groupId>io.projectreactor</groupId>
-            <artifactId>reactor-core</artifactId>
-            <version>3.3.10.RELEASE</version>
-        </dependency>
-        <dependency>
-            <groupId>io.projectreactor.netty</groupId>
-            <artifactId>reactor-netty</artifactId>
-        </dependency>
-        <!-- 对reactor的支持 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webflux</artifactId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
         </dependency>
-        <!--   end     es 7.X版本 reactiveElasticsearchTemplate-->
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>com.newtranx.cloud.edit</groupId>
             <artifactId>cloud-api-commons</artifactId>

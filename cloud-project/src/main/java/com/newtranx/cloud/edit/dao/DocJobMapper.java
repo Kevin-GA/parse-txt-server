@@ -13,4 +13,5 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  */
 public interface DocJobMapper extends BaseMapper<DocJob> {
 
+    int insertReturnId(DocJob docJob);
 }

@@ -11,10 +11,12 @@ import com.newtranx.cloud.edit.common.util.HttpClientUtils;
 import com.newtranx.cloud.edit.dto.ContentDto;
 import com.newtranx.cloud.edit.dto.Item;
 import com.newtranx.cloud.edit.dto.NLPResponseDto;
+import com.newtranx.cloud.edit.dto.PersonTriples;
 import com.newtranx.cloud.edit.entities.*;
-import com.newtranx.cloud.edit.service.ContentEsService;
+import com.newtranx.cloud.edit.mongoDao.ContentMongoDao;
+import com.newtranx.cloud.edit.mongoDao.DocMongoDao;
+import com.newtranx.cloud.edit.mongoDao.PersonTriplesMongoDao;
 import com.newtranx.cloud.edit.service.ContentIndexService;
-import com.newtranx.cloud.edit.service.DocEsService;
 import com.newtranx.cloud.edit.service.DocJobService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -33,10 +35,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -57,18 +56,25 @@ public class DocJobController {
 
     private static final Logger LOG = LoggerFactory.getLogger(DocJobController.class);
 
+//    String baseUrl = "/data/myfile/01181514_001/txt/";
     String baseUrl = "C:\\develop\\IdeaProjects\\bossLee\\01181514_001\\txt\\";
-//    String baseUrl = "/data/myfile";
+
+//    String saveUrl = "/data/myfile";
+    String saveUrl = "C:\\develop\\myfile\\";
 
     @Resource
     private DocJobService docJobService;
-    @Resource
-    private DocEsService docEsService;
 
     @Resource
-    private ContentEsService contentEsService;
+    private ContentMongoDao contentMongoDao;
+    @Resource
+    private DocMongoDao docMongoDao;
+
     @Resource
     private ContentIndexService contentIndexService;
+
+    @Resource
+    private PersonTriplesMongoDao personTriplesMongoDao;
 
 
     private int matchTime = 0;
@@ -105,22 +111,25 @@ public class DocJobController {
     /**
      * 创建任务并上传文件夹下面的所有文件
      * @param docJob
-     * @param folder
+     * @param file
      * @return
      */
     @PostMapping("/create")
     @ApiOperation(value = "创建作业，并上传文件")
-    public Result<Object> create(DocJob docJob,@RequestParam("file") MultipartFile[] folder){
+    public Result<Object> create(DocJob docJob,String midparam,@RequestParam("file") MultipartFile[] file){
         try {
-            FileUtils.saveMultiFile("D:/upload", folder);
+            FileUtils.saveMultiFile(saveUrl+midparam, file);
 
-            LOG.info("message", "You successfully uploaded folder'" + folder + "'");
+            LOG.info("message", "You successfully uploaded folder'" + file + "'");
 
         } catch (Exception e) {
             e.printStackTrace();
         }
         docJob.setTaskStatus("解析中");
-        docJobService.saveOrUpdate(docJob);
+//        docJobService.saveOrUpdate(docJob);
+        docJobService.insertReturnId(docJob);
+        System.out.println(docJob.getId());
+//        init(docJob.getId());
         return Result.getSuccessResult();
 
     }
@@ -142,10 +151,8 @@ public class DocJobController {
         return  Result.getSuccessResult(docJobService.getById(id));
     }
 
-
-
     @GetMapping("/init")
-    public Result<Object> init(String filePath){
+    public Result<Object> init(Integer jobId){
 //        String locationPath = ClassUtils.getDefaultClassLoader().getResource("").getPath();
         List<File> txtList = FileUtils.getFilesFromFolder(baseUrl);
         List<File> muluList = txtList.stream().filter(a -> a.getName().startsWith("C")).collect(Collectors.toList());
@@ -221,42 +228,50 @@ public class DocJobController {
 
         //mulu存储到es
         ContentEsBean contentEsBean = new ContentEsBean();
-        contentEsBean.setId(1L);
-        contentEsBean.setFileId("1");
+//        contentEsBean.setId(1L);
+        contentEsBean.setFileId(jobId.toString());
         contentEsBean.setTotalTitle("");
         contentEsBean.setMuluJson(JSON.toJSONString(contentDtos));
-        contentEsService.save(contentEsBean);
+//        contentEsService.save(contentEsBean);
+
+        contentMongoDao.save(contentEsBean);
 
         //内容存储到es
         for (ContentIndexEntity contentIndexEntity:JieList) {
             StringBuffer jieContentBuffer = new StringBuffer();
-            for (int i = contentIndexEntity.getPageNum(); true ; i++) {
+            for (int i = contentIndexEntity.getPageNum(); i<= 474; i++) {
+//            for (int i = 22; i<= 474; i++) {
                 String resFromTxt = readSubContentFileByLines(baseUrl + formatecontentFileName(i));
                 if(StringUtils.isNotBlank(resFromTxt)){
                     //文本间拼接字符
                     jieContentBuffer =  jieContentBuffer.append(new StringBuffer(resFromTxt));
-                    if(matchTime == 2){
-                        matchTime = 0;
-                        break;
-                    }
                 }
-
+                if(matchTime == 2){
+                    matchTime = 0;
+                    break;
+                }
             }
             if (matchTime == 0){
                 DocEsBean docEsBean = new DocEsBean();
-                docEsBean.setId(2L);
+                docEsBean.setId(UUID.randomUUID().toString());
                 docEsBean.setBianzhangjie(contentIndexEntity.getBian()+","+contentIndexEntity.getZhang()+","+contentIndexEntity.getJie());
                 docEsBean.setName(contentIndexEntity.getContentName());
                 docEsBean.setPage(0);
-//                docEsBean.setDocId(1);
-//                docEsBean.setPerson("");
-//                docEsBean.setEvent("");
-//                docEsBean.setGeographyInfo("");
-//                docEsBean.setOrganization("");
-//                docEsBean.setDesc(jieContentBuffer.toString().substring(0,500));
-                docEsService.save(docEsBean);
+                docEsBean.setDocId(jobId);
+                docEsBean.setPerson("");
+                docEsBean.setEvent("");
+                docEsBean.setGeographyInfo("");
+                docEsBean.setOrganization("");
+                docEsBean.setDesc(jieContentBuffer.toString());
+
+//                docEsService.save(docEsBean);
+
                 HashMap<String, String> requestBodyMap = new HashMap<>();
-                requestBodyMap.put("text",jieContentBuffer.toString().substring(0,500));
+                if(jieContentBuffer.toString().length()>500){
+                    requestBodyMap.put("text",jieContentBuffer.toString().substring(0,500));
+                }else{
+                    requestBodyMap.put("text",jieContentBuffer.toString());
+                }
 
                 String s = JSON.toJSONString(requestBodyMap);
 
@@ -269,6 +284,14 @@ public class DocJobController {
 //        "\"length\": 6}, {\"item\": \"邹韬奋\", \"wordtag_label\": \"人物类_实体\", \"offset\": 43, \"length\": 3}], \"person_triples\": [{\"name\": \"范志民\",\n" +
 //        "\"ethnic\": \"汉族\", \"gender\": \"男\", \"origin\": \"五莲县院西乡范家车村\"}]}";
                 NLPResponseDto nlpResponseDto = JSON.parseObject(nlpResponseStr, NLPResponseDto.class);
+                List<PersonTriples> person_triples = nlpResponseDto.getPerson_triples();
+                if(!person_triples.isEmpty()){
+                    for (PersonTriples personTriples:person_triples) {
+                        personTriples.setId(UUID.randomUUID().toString());
+                        personTriples.setTaskid(jobId);
+                        personTriplesMongoDao.save(personTriples);
+                    }
+                }
                 //todo 解析NLP返回的字符串
                 //                nlpResponseStr=""
                 List<String> personItems = new ArrayList<>();
@@ -279,6 +302,11 @@ public class DocJobController {
                     switch (item.getWordtag_label()){
                         case "人物类_实体":
                             personItems.add(JSON.toJSONString(item));
+                            PersonTriples personTriples = new PersonTriples();
+                            personTriples.setName(item.getItem());
+                            personTriples.setId(UUID.randomUUID().toString());
+                            personTriples.setTaskid(jobId);
+                            personTriplesMongoDao.save(personTriples);
                             break;
                         case "世界地区类":
                             worldItems.add(JSON.toJSONString(item));
@@ -295,6 +323,7 @@ public class DocJobController {
                 if (!personItems.isEmpty()){
                     List<String> personDistinctList = personItems.stream().distinct().collect(Collectors.toList());
                     docEsBean.setPerson(JSONArray.toJSONString(personDistinctList));
+
                 }
                 if (!worldItems.isEmpty()){
                     List<String> worldDistinctList = worldItems.stream().distinct().collect(Collectors.toList());
@@ -308,12 +337,18 @@ public class DocJobController {
                     List<String> eventDistinctList = eventItems.stream().distinct().collect(Collectors.toList());
                     docEsBean.setEvent(JSONArray.toJSONString(eventDistinctList));
                 }
+
 //                docEsService.save(docEsBean);
+                docMongoDao.save(docEsBean);
+
+
             }
 
-
         }
-
+        DocJob docJob = new DocJob();
+        docJob.setId(jobId);
+        docJob.setTaskStatus("解析完成");
+        docJobService.updateById(docJob);
         return Result.getSuccessResult(contentDtos);
 
     }

@@ -1,15 +1,13 @@
 package com.newtranx.cloud.edit.entities;
 
 
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.elasticsearch.annotations.Document;
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
 
+
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -19,12 +17,12 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 //通过这个注解可以声明一个文档，指定其所在的索引库和type
-@Document(indexName = "contentesbean")
-public class ContentEsBean {
+//@Document(indexName = "contentesbean")
+public class ContentEsBean implements Serializable {
 
     @Id
-    private long id;
-    @Field(analyzer = "ik_smart", type = FieldType.Text)
+    private String id;
+//    @Field(analyzer = "ik_smart", type = FieldType.Text)
     private String totalTitle;
     private String fileId;
     private String muluJson;

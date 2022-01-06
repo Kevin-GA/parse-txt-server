@@ -13,4 +13,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface DocJobService extends IService<DocJob> {
 
+    int insertReturnId (DocJob docJob);
+
 }

@@ -15,4 +15,50 @@
         <result column="update_time" property="updateTime" />
     </resultMap>
 
+    <insert id="insertReturnId" parameterType="com.newtranx.cloud.edit.entities.DocJob" keyProperty="id" useGeneratedKeys="true">
+        insert into doc_job
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="task != null">
+                task,
+            </if>
+            <if test="promoter != null">
+                promoter,
+            </if>
+            <if test="executor != null">
+                executor,
+            </if>
+            <if test="completeDate != null">
+                complete_date,
+            </if>
+            <if test="taskStatus != null">
+                task_status,
+            </if>
+        </trim>
+        value
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id},
+            </if>
+            <if test="task != null">
+                #{task},
+            </if>
+            <if test="promoter != null">
+                #{promoter},
+            </if>
+            <if test="executor != null">
+                #{executor},
+            </if>
+            <if test="completeDate != null">
+                #{completeDate},
+            </if>
+            <if test="taskStatus != null">
+                #{taskStatus},
+            </if>
+        </trim>
+
+    </insert>
+
 </mapper>

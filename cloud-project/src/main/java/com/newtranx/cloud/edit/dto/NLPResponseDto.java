@@ -16,4 +16,5 @@ public class NLPResponseDto {
 
     private String text;
     List<Item> items;
+    private List<PersonTriples> person_triples;
 }

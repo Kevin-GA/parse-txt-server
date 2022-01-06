@@ -7,9 +7,16 @@ spring:
 #    nacos:
 #      discovery:
 #        server-addr: 123.57.180.198:8848
-  elasticsearch:
-    rest:
-      uris: 101.200.183.167:9200
+  data:
+    mongodb:
+      authentication-database: admin
+      host: 101.200.183.167
+      port: 27017
+      username: admin
+      password: mongo@123456
+#  elasticsearch:
+#    rest:
+#      uris: 101.200.183.167:9200
 
   # spring2.3.x 版本之前
 #      cluster-name: elasticsearch
