@@ -37,8 +37,8 @@ import java.util.regex.Pattern;
 @RequestMapping("/docParse")
 public class ParseTextController {
 
-    String baseUrl = "C:\\develop\\IdeaProjects\\bossLee\\01181514_001\\txt\\";
-//    String baseUrl = "/data/myfile";
+//    String baseUrl = "C:\\develop\\IdeaProjects\\bossLee\\01181514_001\\txt\\";
+    String baseUrl = "/data/myfile";
 
     @Resource
     private ContentMongoDao contentMongoDao;
@@ -72,7 +72,7 @@ public class ParseTextController {
         return Result.getSuccessResult(byBianzhangjie.get(0));
 
     }
-    @GetMapping("/linkAI")
+    @GetMapping("/AI")
     public Object linkAI(String aiParam,Integer taskid){
         List<DocEsBean> byNameOrDesc = docMongoDao.findByDescLikeAndDocId(aiParam,taskid);
         return Result.getSuccessResult(byNameOrDesc);

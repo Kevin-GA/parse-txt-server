@@ -44,6 +44,9 @@ public class DocJob implements Serializable {
     @ApiModelProperty(value = "任务状态")
     private String taskStatus;
 
+    @ApiModelProperty(value = "文件位置")
+    private String filePath;
+
     private String isDel;
 
     private LocalDateTime createTime;

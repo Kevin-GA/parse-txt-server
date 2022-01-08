@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.newtranx.cloud.edit.common.entities.Result;
+import com.newtranx.cloud.edit.common.enums.FailureCodeEnum;
 import com.newtranx.cloud.edit.common.util.EntityChangeUtil;
 import com.newtranx.cloud.edit.common.util.FileUtils;
 import com.newtranx.cloud.edit.common.util.HttpClientUtils;
@@ -23,6 +24,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.web.multipart.MultipartFile;
@@ -57,10 +59,10 @@ public class DocJobController {
     private static final Logger LOG = LoggerFactory.getLogger(DocJobController.class);
 
 //    String baseUrl = "/data/myfile/01181514_001/txt/";
-    String baseUrl = "C:\\develop\\IdeaProjects\\bossLee\\01181514_001\\txt\\";
+//    String baseUrl = "C:\\develop\\IdeaProjects\\bossLee\\01181514_001\\txt\\";
 
-//    String saveUrl = "/data/myfile";
-    String saveUrl = "C:\\develop\\myfile\\";
+    String saveUrl = "/data/myfile/";
+//    String saveUrl = "C:\\develop\\myfile\\";
 
     @Resource
     private DocJobService docJobService;
@@ -126,10 +128,11 @@ public class DocJobController {
             e.printStackTrace();
         }
         docJob.setTaskStatus("解析中");
+        docJob.setFilePath(saveUrl+midparam);
 //        docJobService.saveOrUpdate(docJob);
         docJobService.insertReturnId(docJob);
         System.out.println(docJob.getId());
-//        init(docJob.getId());
+        init(docJob.getId());
         return Result.getSuccessResult();
 
     }
@@ -151,16 +154,23 @@ public class DocJobController {
         return  Result.getSuccessResult(docJobService.getById(id));
     }
 
+    @Async
     @GetMapping("/init")
     public Result<Object> init(Integer jobId){
 //        String locationPath = ClassUtils.getDefaultClassLoader().getResource("").getPath();
-        List<File> txtList = FileUtils.getFilesFromFolder(baseUrl);
+        DocJob byId = docJobService.getById(jobId);
+        if (byId==null || byId.getFilePath()==null){
+            return Result.getFailureResult(FailureCodeEnum.INVALID_PARAM);
+        }
+        String filePath = byId.getFilePath();
+
+        List<File> txtList = FileUtils.getFilesFromFolder(filePath);
         List<File> muluList = txtList.stream().filter(a -> a.getName().startsWith("C")).collect(Collectors.toList());
         List<File> contentList = txtList.stream().filter(a -> a.getName().startsWith("T")).collect(Collectors.toList());
         List<ContentIndexEntity> contentIndexList = new ArrayList<>();
 //        todo 1、读取目录文件生成目录结构对象
         for (File f : muluList) {
-            readContentFileByLines(baseUrl + f.getName(),contentIndexList);
+            readContentFileByLines(filePath + f.getName(),contentIndexList);
         }
 
         List<ContentIndex> contentLists = null;
@@ -241,7 +251,7 @@ public class DocJobController {
             StringBuffer jieContentBuffer = new StringBuffer();
             for (int i = contentIndexEntity.getPageNum(); i<= 474; i++) {
 //            for (int i = 22; i<= 474; i++) {
-                String resFromTxt = readSubContentFileByLines(baseUrl + formatecontentFileName(i));
+                String resFromTxt = readSubContentFileByLines(filePath + formatecontentFileName(i));
                 if(StringUtils.isNotBlank(resFromTxt)){
                     //文本间拼接字符
                     jieContentBuffer =  jieContentBuffer.append(new StringBuffer(resFromTxt));
@@ -256,7 +266,7 @@ public class DocJobController {
                 docEsBean.setId(UUID.randomUUID().toString());
                 docEsBean.setBianzhangjie(contentIndexEntity.getBian()+","+contentIndexEntity.getZhang()+","+contentIndexEntity.getJie());
                 docEsBean.setName(contentIndexEntity.getContentName());
-                docEsBean.setPage(0);
+                docEsBean.setPage(contentIndexEntity.getPageNum());
                 docEsBean.setDocId(jobId);
                 docEsBean.setPerson("");
                 docEsBean.setEvent("");

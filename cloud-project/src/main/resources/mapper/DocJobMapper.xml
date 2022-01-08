@@ -10,6 +10,7 @@
         <result column="executor" property="executor" />
         <result column="complete_date" property="completeDate" />
         <result column="task_status" property="taskStatus" />
+        <result column="file_path" property="filePath" />
         <result column="is_del" property="isDel" />
         <result column="create_time" property="createTime" />
         <result column="update_time" property="updateTime" />
@@ -36,6 +37,9 @@
             <if test="taskStatus != null">
                 task_status,
             </if>
+            <if test="filePath != null">
+                file_path,
+            </if>
         </trim>
         value
         <trim prefix="(" suffix=")" suffixOverrides=",">
@@ -56,6 +60,9 @@
             </if>
             <if test="taskStatus != null">
                 #{taskStatus},
+            </if>
+            <if test="filePath != null">
+                #{filePath},
             </if>
         </trim>
 
